@@ -332,6 +332,20 @@ body {
   overflow: hidden;
 }
 
+.viewer-stage.zoomed {
+  touch-action: none;
+}
+
+.viewer-zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+}
+
+.viewer-zoom.animating {
+  transition: transform 0.3s ease;
+}
+
 /* Both layers fill the screen and letterbox the photo: the thumbnail
    shows while the full-size preview loads on top of it. */
 .viewer-image {
