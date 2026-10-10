@@ -20,11 +20,17 @@ function preload(url: string | null) {
 
 const ZOOM = 2.5;
 
+/** A touch swipe past this share of the screen width (or a quick flick) changes photo. */
+const SWIPE_DISTANCE = 0.2;
+const SWIPE_VELOCITY = 0.4; // px/ms
+const SLIDE_MS = 200;
+
 /**
  * Full screen viewer. ←/→ walk the whole timeline, loading neighbour months on demand.
  * Click on the photo zooms in on that spot, click again zooms out. While zoomed, the
  * pointer position drives the framing: pointer on the left edge shows the left edge
- * of the photo, and so on.
+ * of the photo, and so on. On touch screens, when not zoomed, swiping left/right
+ * moves to the older/newer photo.
  */
 export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
   const [loadedId, setLoadedId] = useState<string | null>(null);
@@ -34,6 +40,12 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
   const layerRef = useRef<HTMLDivElement>(null);
   /** Pointer position inside the stage, 0..1 on each axis. */
   const pointer = useRef({ x: 0.5, y: 0.5 });
+  /** Touch swipe in progress (not zoomed). */
+  const swipe = useRef<{ id: number; x: number; y: number; t: number; dx: number; active: boolean } | null>(null);
+  /** A swipe just ended: the click the browser may fire afterwards must not zoom. */
+  const suppressClick = useRef(false);
+  /** Direction of the swipe that brought the current photo, to slide it in. */
+  const slideIn = useRef<0 | 1 | -1>(0);
   const preview = manager.api.getPreviewUrl(asset);
   const thumbnail = manager.api.getThumbnailUrl(asset);
 
@@ -68,6 +80,19 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
 
   useLayoutEffect(applyTransform, [applyTransform]);
 
+  // After a swipe, the new photo slides in from the opposite side.
+  useLayoutEffect(() => {
+    const direction = slideIn.current;
+    const layer = layerRef.current;
+    slideIn.current = 0;
+    if (!direction || !layer) {
+      return;
+    }
+    setLayer(`translateX(${direction * layer.clientWidth}px)`, 'none');
+    void layer.offsetWidth; // commit the start position before animating
+    setLayer('', `transform ${SLIDE_MS}ms ease-out`);
+  }, [asset.id]);
+
   const toggleZoom = (next: boolean) => {
     // Animate the zoom in/out itself, but follow the pointer instantly afterwards.
     layerRef.current?.classList.add('animating');
@@ -82,7 +107,64 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
     );
   };
 
+  const setLayer = (transform: string, transition: string) => {
+    const layer = layerRef.current;
+    if (layer) {
+      layer.style.transition = transition;
+      layer.style.transform = transform;
+    }
+  };
+
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    suppressClick.current = false;
+    if (zoomed || event.pointerType === 'mouse') {
+      return;
+    }
+    swipe.current = { id: event.pointerId, x: event.clientX, y: event.clientY, t: performance.now(), dx: 0, active: false };
+  };
+
+  const onPointerUp = async (event: PointerEvent<HTMLDivElement>) => {
+    const gesture = swipe.current;
+    swipe.current = null;
+    if (!gesture?.active || gesture.id !== event.pointerId) {
+      return;
+    }
+    suppressClick.current = true;
+    const width = event.currentTarget.clientWidth;
+    const velocity = Math.abs(gesture.dx) / Math.max(1, performance.now() - gesture.t);
+    const snapBack = () => setLayer('', `transform ${SLIDE_MS}ms ease-out`);
+    if (Math.abs(gesture.dx) < width * SWIPE_DISTANCE && velocity < SWIPE_VELOCITY) {
+      snapBack();
+      return;
+    }
+    // Swipe left -> older photo (like →), swipe right -> newer photo (like ←).
+    const direction = gesture.dx < 0 ? 1 : -1;
+    const next = await manager.getAdjacentAsset(asset, direction);
+    if (!next) {
+      snapBack();
+      return;
+    }
+    setLayer(`translateX(${-direction * width}px)`, `transform ${SLIDE_MS}ms ease-out`);
+    setTimeout(() => {
+      slideIn.current = direction;
+      onNavigate(next);
+    }, SLIDE_MS);
+  };
+
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const gesture = swipe.current;
+    if (gesture && gesture.id === event.pointerId && !zoomed) {
+      const dx = event.clientX - gesture.x;
+      const dy = event.clientY - gesture.y;
+      if (!gesture.active && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+        gesture.active = true;
+      }
+      if (gesture.active) {
+        gesture.dx = dx;
+        setLayer(`translateX(${dx}px)`, 'none');
+      }
+      return;
+    }
     const rect = event.currentTarget.getBoundingClientRect();
     pointer.current = {
       x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
@@ -100,6 +182,10 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
 
   const onStageClick = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     if (zoomed) {
       toggleZoom(false);
       return;
@@ -166,7 +252,10 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
         ref={stageRef}
         className={`viewer-stage${zoomed ? ' zoomed' : ''}`}
         onClick={onStageClick}
+        onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
         <div
           ref={layerRef}
@@ -174,6 +263,7 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
           onTransitionEnd={(event) => {
             if (event.target === event.currentTarget) {
               event.currentTarget.classList.remove('animating');
+              event.currentTarget.style.transition = '';
             }
           }}
         >

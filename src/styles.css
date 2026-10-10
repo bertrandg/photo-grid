@@ -475,9 +475,7 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-}
-
-.viewer-stage.zoomed {
+  /* Swipes and pans are handled in JS. */
   touch-action: none;
 }
 

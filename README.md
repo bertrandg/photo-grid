@@ -91,7 +91,8 @@ Viewer plein écran : clic sur une photo, `←`/`→` pour naviguer dans toute l
 timeline (les mois voisins sont chargés à la demande et les images préchargées),
 `Échap` pour fermer (la grille se repositionne sur la photo). Dans le viewer, un
 clic sur la photo zoome (×2,5) à l'endroit cliqué, un second clic (ou `Échap`)
-dézoome ; en mode zoomé, la position de la souris déplace l'image.
+dézoome ; en mode zoomé, la position de la souris déplace l'image. Sur écran
+tactile (hors zoom), swiper à gauche/droite passe à la photo plus ancienne/récente.
 
 Sélection : une case ronde apparaît au survol d'une photo (et sur toutes dès
 qu'une photo est sélectionnée ; un clic sur une photo la sélectionne alors au
