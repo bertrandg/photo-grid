@@ -1,16 +1,20 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 import type { TimelineAsset } from '../api/types';
+import type { Selection } from '../timeline/selection';
 import type { TimelineManager } from '../timeline/timeline-manager';
 import { MonthGroup } from './MonthGroup';
 import { useTimelineVersion } from './useTimeline';
 
 interface Props {
   manager: TimelineManager;
+  selection: Selection;
   onOpen: (asset: TimelineAsset) => void;
 }
 
-export function Timeline({ manager, onOpen }: Props) {
+export function Timeline({ manager, selection, onOpen }: Props) {
   useTimelineVersion(manager);
+  const selectionVersion = useSyncExternalStore(selection.subscribe, selection.getVersion);
+  const onToggle = useCallback((asset: TimelineAsset) => selection.toggle(asset), [selection]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +54,10 @@ export function Timeline({ manager, onOpen }: Props) {
       tabIndex={0}
       onScroll={(event) => manager.handleScroll(event.currentTarget.scrollTop)}
     >
-      <div ref={contentRef} className="timeline-content" style={{ height: manager.totalHeight }}>
+      <div
+        ref={contentRef}
+        className={`timeline-content${selection.size > 0 ? ' selecting' : ''}`}
+        style={{ height: manager.totalHeight }}>
         {manager.renderedMonths.map(({ month, days }) => (
           <MonthGroup
             key={month.key}
@@ -63,7 +70,10 @@ export function Timeline({ manager, onOpen }: Props) {
             geometry={manager.geometry}
             api={manager.api}
             showImages={!manager.isScrubbing}
+            selection={selection}
+            selectionVersion={selectionVersion}
             onOpen={onOpen}
+            onToggle={onToggle}
           />
         ))}
       </div>

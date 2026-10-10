@@ -1,4 +1,4 @@
-import { picsumPreviewUrl, picsumThumbnailUrl } from './mock-api';
+import { picsumDownloadUrl, picsumPreviewUrl, picsumThumbnailUrl } from './mock-api';
 import type { TimeBucket, TimeBucketAssets, TimelineApi, TimelineAsset } from './types';
 
 /**
@@ -36,5 +36,9 @@ export class StaticApi implements TimelineApi {
 
   getPreviewUrl(asset: TimelineAsset): string | null {
     return this.images ? picsumPreviewUrl(asset) : null;
+  }
+
+  getDownloadUrl(asset: TimelineAsset): string | null {
+    return picsumDownloadUrl(asset);
   }
 }

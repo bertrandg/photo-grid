@@ -29,17 +29,36 @@ interface Props {
   box: Box;
   url: string | null;
   showImage: boolean;
+  selected: boolean;
+  /** At least one asset is selected: a click selects instead of opening the viewer. */
+  selecting: boolean;
   onOpen: (asset: TimelineAsset) => void;
+  onToggle: (asset: TimelineAsset) => void;
 }
 
-export const Thumbnail = memo(function Thumbnail({ asset, box, url, showImage, onOpen }: Props) {
+export const Check = ({ checked, partial = false }: { checked: boolean; partial?: boolean }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    {partial ? <path d="M7 12h10" /> : checked ? <path d="M6.5 12.5l3.5 3.5 7.5-8" /> : null}
+  </svg>
+);
+
+export const Thumbnail = memo(function Thumbnail({
+  asset,
+  box,
+  url,
+  showImage,
+  selected,
+  selecting,
+  onOpen,
+  onToggle,
+}: Props) {
   const [loaded, setLoaded] = useState(false);
   const placeholder = asset.thumbhash ? `url(${thumbhashUrl(asset.thumbhash)})` : undefined;
 
   return (
     <button
       type="button"
-      className="tile"
+      className={`tile${selected ? ' selected' : ''}`}
       style={{
         transform: `translate(${box.left}px, ${box.top}px)`,
         width: box.width,
@@ -47,8 +66,9 @@ export const Thumbnail = memo(function Thumbnail({ asset, box, url, showImage, o
         backgroundColor: asset.color ?? undefined,
         backgroundImage: placeholder,
       }}
-      onClick={() => onOpen(asset)}
+      onClick={() => (selecting ? onToggle(asset) : onOpen(asset))}
       aria-label={asset.localDateTime}
+      aria-pressed={selecting ? selected : undefined}
     >
       {showImage && url && (
         <img
@@ -60,6 +80,18 @@ export const Thumbnail = memo(function Thumbnail({ asset, box, url, showImage, o
           onLoad={() => setLoaded(true)}
         />
       )}
+      <span
+        className={`check tile-check${selected ? ' checked' : ''}`}
+        role="checkbox"
+        aria-checked={selected}
+        aria-label="Sélectionner"
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggle(asset);
+        }}
+      >
+        <Check checked={selected} />
+      </span>
       {asset.isVideo && <span className="tile-badge">▶ {asset.duration ? formatDuration(asset.duration) : ''}</span>}
     </button>
   );

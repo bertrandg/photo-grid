@@ -44,6 +44,8 @@ export interface TimelineApi {
   getTimeBucket(timeBucket: string, signal?: AbortSignal): Promise<TimeBucketAssets>;
   getThumbnailUrl(asset: TimelineAsset): string | null;
   getPreviewUrl(asset: TimelineAsset): string | null;
+  /** Full-size file for downloads (must be CORS-readable). */
+  getDownloadUrl(asset: TimelineAsset): string | null;
 }
 
 export function toTimelineAssets(bucket: TimeBucketAssets): TimelineAsset[] {

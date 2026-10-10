@@ -70,4 +70,8 @@ export class ImmichApi implements TimelineApi {
   getPreviewUrl(asset: TimelineAsset): string {
     return `${this.baseUrl}/assets/${asset.id}/thumbnail?size=preview`;
   }
+
+  getDownloadUrl(asset: TimelineAsset): string {
+    return `${this.baseUrl}/assets/${asset.id}/original`;
+  }
 }

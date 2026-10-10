@@ -92,3 +92,10 @@ timeline (les mois voisins sont chargés à la demande et les images préchargé
 `Échap` pour fermer (la grille se repositionne sur la photo). Dans le viewer, un
 clic sur la photo zoome (×2,5) à l'endroit cliqué, un second clic (ou `Échap`)
 dézoome ; en mode zoomé, la position de la souris déplace l'image.
+
+Sélection : une case ronde apparaît au survol d'une photo (et sur toutes dès
+qu'une photo est sélectionnée ; un clic sur une photo la sélectionne alors au
+lieu de l'ouvrir). La case à côté de chaque date sélectionne/désélectionne toute
+la journée (état partiel affiché). La barre bleue indique le nombre de photos et
+télécharge la sélection en `.zip`, construit dans le navigateur avec
+[client-zip](https://github.com/Touffy/client-zip) ; `Échap` vide la sélection.

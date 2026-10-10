@@ -213,6 +213,10 @@ export class MockApi implements TimelineApi {
   getPreviewUrl(asset: TimelineAsset): string | null {
     return this.images ? picsumPreviewUrl(asset) : null;
   }
+
+  getDownloadUrl(asset: TimelineAsset): string | null {
+    return picsumDownloadUrl(asset);
+  }
 }
 
 // Fixed size per asset (like Immich's 250px thumbnails) so the browser cache survives resizes.
@@ -221,3 +225,6 @@ export const picsumThumbnailUrl = (asset: TimelineAsset) =>
 
 export const picsumPreviewUrl = (asset: TimelineAsset) =>
   `https://picsum.photos/seed/${asset.id}/${Math.round(1440 * asset.ratio)}/1440`;
+
+export const picsumDownloadUrl = (asset: TimelineAsset) =>
+  `https://picsum.photos/seed/${asset.id}/${Math.round(1440 * asset.ratio)}/1440.jpg`;

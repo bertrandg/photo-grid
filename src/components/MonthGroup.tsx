@@ -1,9 +1,12 @@
 import { memo } from 'react';
 import type { TimelineApi, TimelineAsset } from '../api/types';
 import type { TimelineGeometry } from '../timeline/constants';
+import type { Selection } from '../timeline/selection';
 import type { RenderedDay } from '../timeline/timeline-manager';
 import type { TimelineDay, TimelineMonth } from '../timeline/timeline-month';
-import { Thumbnail } from './Thumbnail';
+import { Check, Thumbnail } from './Thumbnail';
+
+const countFormat = new Intl.NumberFormat();
 
 interface DayProps {
   day: TimelineDay;
@@ -13,10 +16,33 @@ interface DayProps {
   geometry: TimelineGeometry;
   api: TimelineApi;
   showImages: boolean;
+  selection: Selection;
+  /** Memo key: re-render visible days when the selection changes. */
+  selectionVersion: number;
   onOpen: (asset: TimelineAsset) => void;
+  onToggle: (asset: TimelineAsset) => void;
 }
 
-const DayGroup = memo(function DayGroup({ day, firstAsset, lastAsset, geometry, api, showImages, onOpen }: DayProps) {
+const DayGroup = memo(function DayGroup({
+  day,
+  firstAsset,
+  lastAsset,
+  geometry,
+  api,
+  showImages,
+  selection,
+  onOpen,
+  onToggle,
+}: DayProps) {
+  const selecting = selection.size > 0;
+  let selectedCount = 0;
+  for (const asset of day.assets) {
+    if (selection.has(asset.id)) {
+      selectedCount++;
+    }
+  }
+  const allSelected = selectedCount === day.assets.length;
+
   const assets = [];
   for (let index = firstAsset; index <= lastAsset; index++) {
     const asset = day.assets[index];
@@ -27,7 +53,10 @@ const DayGroup = memo(function DayGroup({ day, firstAsset, lastAsset, geometry, 
         box={day.boxes[index]}
         url={api.getThumbnailUrl(asset)}
         showImage={showImages}
+        selected={selection.has(asset.id)}
+        selecting={selecting}
         onOpen={onOpen}
+        onToggle={onToggle}
       />,
     );
   }
@@ -38,7 +67,19 @@ const DayGroup = memo(function DayGroup({ day, firstAsset, lastAsset, geometry, 
       style={{ transform: `translate(${day.left}px, ${day.top}px)`, width: day.width, height: day.outerHeight }}
     >
       <h3 className="day-title" style={{ height: geometry.dayHeaderHeight }} title={day.title}>
-        {day.title}
+        <span
+          className={`check day-check${selectedCount > 0 ? ' checked' : ''}`}
+          role="checkbox"
+          aria-checked={allSelected ? true : selectedCount > 0 ? 'mixed' : false}
+          aria-label="Sélectionner la journée"
+          onClick={() => selection.setMany(day.assets, !allSelected)}
+        >
+          <Check checked={allSelected} partial={selectedCount > 0 && !allSelected} />
+        </span>
+        <span className="day-name">{day.title}</span>
+        <span className="day-count">
+          {countFormat.format(day.assets.length)} {day.assets.length > 1 ? 'photos' : 'photo'}
+        </span>
       </h3>
       <div className="day-grid" style={{ height: day.height }}>
         {assets}
@@ -58,7 +99,10 @@ interface MonthProps {
   geometry: TimelineGeometry;
   api: TimelineApi;
   showImages: boolean;
+  selection: Selection;
+  selectionVersion: number;
   onOpen: (asset: TimelineAsset) => void;
+  onToggle: (asset: TimelineAsset) => void;
 }
 
 export const MonthGroup = memo(function MonthGroup({
@@ -71,7 +115,10 @@ export const MonthGroup = memo(function MonthGroup({
   geometry,
   api,
   showImages,
+  selection,
+  selectionVersion,
   onOpen,
+  onToggle,
 }: MonthProps) {
   return (
     <section className="month" style={{ transform: `translateY(${top}px)`, height }} data-month={month.key}>
@@ -91,7 +138,10 @@ export const MonthGroup = memo(function MonthGroup({
               geometry={geometry}
               api={api}
               showImages={showImages}
+              selection={selection}
+              selectionVersion={selectionVersion}
               onOpen={onOpen}
+              onToggle={onToggle}
             />
           );
         })

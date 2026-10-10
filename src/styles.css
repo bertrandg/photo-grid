@@ -8,6 +8,7 @@
   --bubble-bg: #ffffff;
   --bubble-fg: #1c1d21;
   --tile: #e4e6ea;
+  --select: #3b63f0;
   color-scheme: light dark;
 }
 
@@ -22,6 +23,7 @@
     --bubble-bg: #2a2d34;
     --bubble-fg: #e8e9ec;
     --tile: #1f2126;
+    --select: #5b80ff;
   }
 }
 
@@ -50,6 +52,7 @@ body {
 }
 
 .app-bar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -181,6 +184,7 @@ body {
   margin: 0;
   display: flex;
   align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 500;
   color: var(--muted);
@@ -188,6 +192,156 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+}
+
+.day-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg);
+}
+
+.day-count {
+  font-size: 12px;
+  font-weight: 400;
+  flex: none;
+}
+
+/* ---- selection ---- */
+
+.check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+.check svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.check.checked {
+  background: var(--select);
+  border-color: var(--select) !important;
+}
+
+/* Round checkbox on photos: on hover, or always once something is selected. */
+.tile-check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  background: rgb(0 0 0 / 0.15);
+  box-shadow: 0 0 4px rgb(0 0 0 / 0.3);
+  opacity: 0;
+  z-index: 1;
+}
+
+.tile:hover .tile-check,
+.tile:focus-visible .tile-check,
+.selecting .tile-check {
+  opacity: 1;
+}
+
+.tile-check:hover {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.tile.selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--select);
+  pointer-events: none;
+}
+
+.tile.selected img {
+  filter: brightness(0.92);
+}
+
+.day-check {
+  border: 2px solid var(--muted);
+  margin-left: 0;
+  opacity: 0;
+}
+
+.day:hover .day-check,
+.selecting .day-check {
+  opacity: 1;
+}
+
+.selection-bar {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  background: var(--select);
+  color: #fff;
+}
+
+.selection-count {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.selection-error {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.selection-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selection-progress {
+  font-size: 13px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.18);
+}
+
+.icon-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.icon-button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .day-grid {
