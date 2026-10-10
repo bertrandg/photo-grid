@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => {
   const immichUrl = env.IMMICH_URL;
 
   return {
+    // Relative asset paths: works at the root and under https://<user>.github.io/<repo>/.
+    base: './',
     plugins: [react()],
     server: {
       proxy: immichUrl

@@ -6,6 +6,8 @@ années), triée de la plus récente à la plus ancienne, avec un scroll fluide 
 portage en React (sans dépendance UI) de la timeline du web d'[Immich](https://github.com/immich-app/immich)
 (`web/src/lib/managers/timeline-manager`, `components/timeline`).
 
+**Démo : https://bertrandg.github.io/photo-grid/** (déployée par `.github/workflows/deploy-pages.yml` à chaque push).
+
 ```bash
 npm install
 npm run dev        # http://localhost:5173
