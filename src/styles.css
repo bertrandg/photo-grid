@@ -1,0 +1,397 @@
+:root {
+  --bg: #fcfcfd;
+  --fg: #1c1d21;
+  --muted: #6b6f7a;
+  --skeleton: #eceef2;
+  --skeleton-hi: #f6f7f9;
+  --accent: #4250af;
+  --bubble-bg: #ffffff;
+  --bubble-fg: #1c1d21;
+  --tile: #e4e6ea;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1013;
+    --fg: #e8e9ec;
+    --muted: #9a9ea8;
+    --skeleton: #1b1d22;
+    --skeleton-hi: #24272d;
+    --accent: #adcbfa;
+    --bubble-bg: #2a2d34;
+    --bubble-fg: #e8e9ec;
+    --tile: #1f2126;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.app-bar h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.app-count {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.app-jump {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.app-jump input {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.app-message {
+  position: absolute;
+  inset: 40% 0 auto;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ---- timeline ---- */
+
+.timeline-area {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.timeline-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  outline: none;
+  /* The scrubber replaces the native scrollbar, like in Immich. */
+  scrollbar-width: none;
+  /* We do our own scroll anchoring (see TimelineManager.withScrollAnchor). */
+  overflow-anchor: none;
+  padding: 0 8px 0 16px;
+}
+
+.timeline-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-content {
+  position: relative;
+  contain: strict;
+  width: 100%;
+}
+
+.month {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  contain: layout style;
+}
+
+.month-title {
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.month-skeleton {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 8px;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 40px,
+    var(--skeleton) 40px,
+    var(--skeleton) calc(100% - 4px),
+    transparent calc(100% - 4px)
+  );
+  background-repeat: repeat-y;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.month-skeleton.error {
+  animation: none;
+  opacity: 0.4;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.day {
+  position: absolute;
+  top: 0;
+  left: 0;
+  contain: layout style;
+}
+
+.day-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.day-grid {
+  position: relative;
+}
+
+.tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: var(--tile);
+  background-size: cover;
+}
+
+.tile:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tile img.loaded {
+  opacity: 1;
+}
+
+.tile:hover img {
+  filter: brightness(0.9);
+}
+
+.tile-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.7);
+}
+
+/* ---- scrubber ---- */
+
+.scrubber {
+  position: relative;
+  width: 60px;
+  flex: none;
+  cursor: row-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+@media (max-width: 850px) {
+  .scrubber {
+    width: 36px;
+  }
+}
+
+.scrubber-year {
+  position: absolute;
+  right: 14px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.scrubber-dot {
+  position: absolute;
+  right: 6px;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--muted) 60%, transparent);
+  pointer-events: none;
+}
+
+.scrubber-indicator,
+.scrubber-hover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  margin-top: -1px;
+  pointer-events: none;
+}
+
+.scrubber-indicator {
+  background: var(--accent);
+  will-change: transform;
+}
+
+.scrubber-hover {
+  background: color-mix(in srgb, var(--fg) 60%, transparent);
+}
+
+.scrubber-bubble {
+  position: absolute;
+  right: calc(100% + 4px);
+  top: -14px;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--bubble-bg);
+  color: var(--bubble-fg);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.scrubber-bubble.visible {
+  opacity: 1;
+}
+
+/* ---- viewer ---- */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer-stage {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.viewer-image {
+  grid-area: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.viewer-image.loaded,
+.viewer-thumb {
+  opacity: 1;
+}
+
+.viewer-thumb {
+  width: 100%;
+  height: 100%;
+  filter: blur(8px);
+}
+
+.viewer-placeholder {
+  height: 80%;
+}
+
+.viewer-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  color: #fff;
+  background: linear-gradient(rgb(0 0 0 / 0.6), transparent);
+}
+
+.viewer button {
+  font: inherit;
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+  border: 0;
+  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28px !important;
+}
+
+.viewer-nav.prev {
+  left: 16px;
+}
+
+.viewer-nav.next {
+  right: 16px;
+}
