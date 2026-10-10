@@ -119,6 +119,9 @@ export class TimelineManager {
   // ---- lifecycle ------------------------------------------------------------
 
   async init() {
+    if (this.status === 'loading' || this.status === 'ready') {
+      return;
+    }
     this.status = 'loading';
     this.emit();
     try {
@@ -144,8 +147,6 @@ export class TimelineManager {
     for (const month of this.loading) {
       month.controller?.abort();
     }
-    this.listeners.clear();
-    this.scrollListeners.clear();
   }
 
   attach(element: HTMLElement | undefined) {

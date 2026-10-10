@@ -15,11 +15,25 @@ npm test           # tests unitaires (vitest)
 npm run build
 ```
 
-Paramètres de la bibliothèque factice (déterministe, ~138 000 photos de 2006 à aujourd'hui) :
+### Données de démo
+
+La bibliothèque de démo (~138 000 photos de 2006 à aujourd'hui, générée de façon
+déterministe par `src/api/mock-api.ts`) est servie comme des **fichiers JSON
+statiques** qui ont la forme de l'API d'Immich, visibles dans l'onglet Réseau :
+
+| Fichier | Équivalent Immich |
+| --- | --- |
+| `data/buckets.json` — mois + nombre de photos | `GET /api/timeline/buckets` |
+| `data/bucket/2024-07-01.json` — photos du mois (format colonne) | `GET /api/timeline/bucket?timeBucket=2024-07-01` |
+
+Le plugin `mock-data` de `vite.config.ts` les sert à la volée avec `npm run dev`
+et les écrit dans `dist/data/` avec `npm run build` (240 fichiers, ~11 Mo). Les
+images viennent de [picsum.photos](https://picsum.photos).
 
 | URL | Effet |
 | --- | --- |
-| `/?scale=10` | 10× plus de photos (~1,4 million) |
+| `/?scale=10` | données générées dans le navigateur (sans réseau), 10× plus de photos (~1,4 million) |
+| `/?source=mock` | données générées dans le navigateur, taille normale |
 | `/?images=off` | pas d'images, seulement les couleurs de placeholder |
 
 ### Brancher son serveur Immich

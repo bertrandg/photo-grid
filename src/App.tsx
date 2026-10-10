@@ -14,8 +14,8 @@ export function App() {
   useTimelineVersion(manager);
 
   useEffect(() => {
+    // init() is idempotent: StrictMode's double effect doesn't fetch twice.
     void manager.init();
-    return () => manager.destroy();
   }, [manager]);
 
   const closeViewer = useCallback(() => {

@@ -115,14 +115,19 @@ export class MockApi implements TimelineApi {
     return result;
   }
 
-  async getTimeBuckets(signal?: AbortSignal): Promise<TimeBucket[]> {
-    await sleep(this.latency[0], signal);
+  /** Synchronous version of getTimeBuckets (used to write the static JSON files). */
+  generateBuckets(): TimeBucket[] {
     return this.months()
       .map(({ year, month }) => ({ timeBucket: `${year}-${pad(month)}-01`, count: this.monthCount(year, month) }))
       .filter((bucket) => bucket.count > 0);
   }
 
-  /** Synchronous generation, exposed for tests. */
+  async getTimeBuckets(signal?: AbortSignal): Promise<TimeBucket[]> {
+    await sleep(this.latency[0], signal);
+    return this.generateBuckets();
+  }
+
+  /** Synchronous version of getTimeBucket (used to write the static JSON files). */
   generateBucket(timeBucket: string): TimeBucketAssets {
     const year = Number(timeBucket.slice(0, 4));
     const month = Number(timeBucket.slice(5, 7));
@@ -184,7 +189,7 @@ export class MockApi implements TimelineApi {
         const ss = Math.floor(s % 60);
         const isVideo = random() < 0.05;
         bucket.id.push(`${year}${pad(month)}-${index++}`);
-        bucket.ratio.push(pickRatio(random));
+        bucket.ratio.push(Math.round(pickRatio(random) * 10000) / 10000);
         bucket.localDateTime.push(`${year}-${pad(month)}-${pad(day)}T${pad(hh)}:${pad(mm)}:${pad(ss)}`);
         bucket.thumbhash.push(null);
         bucket.color!.push(`hsl(${(hue + Math.floor(random() * 50)) % 360} ${25 + Math.floor(random() * 30)}% ${35 + Math.floor(random() * 25)}%)`);
@@ -202,19 +207,17 @@ export class MockApi implements TimelineApi {
   }
 
   getThumbnailUrl(asset: TimelineAsset): string | null {
-    if (!this.images) {
-      return null;
-    }
-    // Fixed size per asset (like Immich's 250px thumbnails) so the browser cache survives resizes.
-    const height = 300;
-    return `https://picsum.photos/seed/${asset.id}/${Math.round(height * asset.ratio)}/${height}`;
+    return this.images ? picsumThumbnailUrl(asset) : null;
   }
 
   getPreviewUrl(asset: TimelineAsset): string | null {
-    if (!this.images) {
-      return null;
-    }
-    const height = 1440;
-    return `https://picsum.photos/seed/${asset.id}/${Math.round(height * asset.ratio)}/${height}`;
+    return this.images ? picsumPreviewUrl(asset) : null;
   }
 }
+
+// Fixed size per asset (like Immich's 250px thumbnails) so the browser cache survives resizes.
+export const picsumThumbnailUrl = (asset: TimelineAsset) =>
+  `https://picsum.photos/seed/${asset.id}/${Math.round(300 * asset.ratio)}/300`;
+
+export const picsumPreviewUrl = (asset: TimelineAsset) =>
+  `https://picsum.photos/seed/${asset.id}/${Math.round(1440 * asset.ratio)}/1440`;
