@@ -66,7 +66,8 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
   return (
     <div className="viewer" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="viewer-stage">
-        {thumbnail && <img className="viewer-image viewer-thumb" src={thumbnail} alt="" />}
+        {/* Low-res thumbnail (already in the browser cache) shown until the preview is loaded. */}
+        {thumbnail && loadedId !== asset.id && <img className="viewer-image viewer-thumb" src={thumbnail} alt="" />}
         {preview ? (
           <img
             key={asset.id}

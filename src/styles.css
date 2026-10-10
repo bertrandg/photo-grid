@@ -332,7 +332,7 @@ body {
   overflow: hidden;
 }
 
-/* Both layers fill the screen and letterbox the photo: the blurred thumbnail
+/* Both layers fill the screen and letterbox the photo: the thumbnail
    shows while the full-size preview loads on top of it. */
 .viewer-image {
   position: absolute;
@@ -347,10 +347,6 @@ body {
 .viewer-image.loaded,
 .viewer-thumb {
   opacity: 1;
-}
-
-.viewer-thumb {
-  filter: blur(8px);
 }
 
 .viewer-placeholder {
