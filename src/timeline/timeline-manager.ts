@@ -453,6 +453,11 @@ export class TimelineManager {
     }
   }
 
+  /** Month shown at the top of the viewport. */
+  monthAtViewportTop(): TimelineMonth | undefined {
+    return this.months.length > 0 ? this.months[this.monthIndexAt(this.scrollTop + 1)] : undefined;
+  }
+
   /** Jumps to the first month at or before `yearMonth` (`YYYY-MM`). */
   scrollToMonth(yearMonth: string) {
     const target = `${yearMonth}-01`;

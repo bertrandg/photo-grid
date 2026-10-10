@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { createApi, type TimelineAsset } from './api';
 import { AssetViewer } from './components/AssetViewer';
 import { DownloadToasts } from './components/DownloadToasts';
+import { MonthJump } from './components/MonthJump';
 import { Scrubber } from './components/Scrubber';
 import { SelectionBar } from './components/SelectionBar';
 import { Timeline } from './components/Timeline';
@@ -59,15 +60,7 @@ export function App() {
           </span>
         )}
         {newest && oldest && (
-          <label className="app-jump">
-            Aller à
-            <input
-              type="month"
-              min={oldest.key.slice(0, 7)}
-              max={newest.key.slice(0, 7)}
-              onChange={(event) => event.target.value && manager.scrollToMonth(event.target.value)}
-            />
-          </label>
+          <MonthJump manager={manager} min={oldest.key.slice(0, 7)} max={newest.key.slice(0, 7)} />
         )}
       </header>
 
