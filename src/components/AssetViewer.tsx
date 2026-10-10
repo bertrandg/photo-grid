@@ -247,7 +247,7 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
   }, [manager, asset]);
 
   return (
-    <div className="viewer" role="dialog" aria-modal="true" onClick={onClose}>
+    <div className={`viewer${zoomed ? ' zoomed' : ''}`} role="dialog" aria-modal="true" onClick={onClose}>
       <div
         ref={stageRef}
         className={`viewer-stage${zoomed ? ' zoomed' : ''}`}
@@ -296,6 +296,7 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
         type="button"
         className="viewer-nav prev"
         aria-label="Plus récente"
+        tabIndex={zoomed ? -1 : undefined}
         onClick={(event) => {
           event.stopPropagation();
           void go(-1);
@@ -307,6 +308,7 @@ export function AssetViewer({ manager, asset, onNavigate, onClose }: Props) {
         type="button"
         className="viewer-nav next"
         aria-label="Plus ancienne"
+        tabIndex={zoomed ? -1 : undefined}
         onClick={(event) => {
           event.stopPropagation();
           void go(1);

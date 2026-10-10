@@ -545,6 +545,16 @@ body {
   font-size: 28px !important;
 }
 
+.viewer-nav {
+  transition: opacity 0.2s;
+}
+
+/* No prev/next arrows while zoomed: the whole screen is for the photo. */
+.viewer.zoomed .viewer-nav {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .viewer-nav.prev {
   left: 16px;
 }
