@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { createApi, type TimelineAsset } from './api';
 import { AssetViewer } from './components/AssetViewer';
+import { DownloadToasts } from './components/DownloadToasts';
 import { Scrubber } from './components/Scrubber';
 import { SelectionBar } from './components/SelectionBar';
 import { Timeline } from './components/Timeline';
 import { useTimelineVersion } from './components/useTimeline';
+import { Downloads } from './downloads';
 import { Selection } from './timeline/selection';
 import { TimelineManager } from './timeline/timeline-manager';
 
@@ -13,6 +15,7 @@ const numberFormat = new Intl.NumberFormat();
 export function App() {
   const [manager] = useState(() => new TimelineManager(createApi()));
   const [selection] = useState(() => new Selection());
+  const [downloads] = useState(() => new Downloads(manager.api));
   const [viewing, setViewing] = useState<TimelineAsset | null>(null);
   useTimelineVersion(manager);
   useSyncExternalStore(selection.subscribe, selection.getVersion);
@@ -48,7 +51,7 @@ export function App() {
   return (
     <div className="app">
       <header className="app-bar">
-        {selecting && <SelectionBar selection={selection} api={manager.api} />}
+        {selecting && <SelectionBar selection={selection} downloads={downloads} />}
         <h1>Photos</h1>
         {manager.status === 'ready' && (
           <span className="app-count">
@@ -74,6 +77,8 @@ export function App() {
         <Timeline manager={manager} selection={selection} onOpen={setViewing} />
         <Scrubber manager={manager} />
       </main>
+
+      <DownloadToasts downloads={downloads} />
 
       {viewing && <AssetViewer manager={manager} asset={viewing} onNavigate={setViewing} onClose={closeViewer} />}
     </div>

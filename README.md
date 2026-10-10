@@ -99,3 +99,6 @@ lieu de l'ouvrir). La case à côté de chaque date sélectionne/désélectionne
 la journée (état partiel affiché). La barre bleue indique le nombre de photos et
 télécharge la sélection en `.zip`, construit dans le navigateur avec
 [client-zip](https://github.com/Touffy/client-zip) ; `Échap` vide la sélection.
+Chaque téléchargement a sa notification en bas à gauche (barre de progression,
+fichiers, volume reçu, bouton Annuler) ; il continue même si on change la
+sélection ou qu'on ouvre une photo.
